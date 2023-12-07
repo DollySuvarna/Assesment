@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+// Function to extract payload from the given data
+unsigned char* extractPayload(unsigned char* input_array, int input_length, int* output_length) {
+    if (input_array == NULL || input_length <= 0) {
+        // Invalid input
+        return NULL;
+    }
+
+    // Extracting Length and Data_type
+    int length = (input_array[0] << 8) | input_array[1];
+    int data_type = (input_array[2] << 8) | input_array[3];
+
+    // Checking if the length matches the actual length of the data
+    if (length + 4 != input_length) {
+        // Invalid data length
+        return NULL;
+    }
+
+    // Allocating memory for the payload
+    unsigned char* payload = (unsigned char*)malloc(length * sizeof(unsigned char));
+    if (payload == NULL) {
+        // Memory allocation failed
+        return NULL;
+    }
+
+    // Copying the payload data
+    for (int i = 0; i < length; i++) {
+        payload[i] = input_array[i + 4];
+    }
+
+    // Setting the output length
+    *output_length = length;
+
+    return payload;
+}
+
+int main() {
+    // Example input array
+    unsigned char input_array[] = {0x00, 0x02, 0x00, 0x11, 0x01, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10};
+    
+    // Get the input array length
+    int input_length = sizeof(input_array) / sizeof(input_array[0]);
+
+    // Variables to store the extracted payload and its length
+    unsigned char* payload;
+    int payload_length;
+
+    // Extract the payload
+    payload = extractPayload(input_array, input_length, &payload_length);
+
+    if (payload != NULL) {
+        // Print the extracted payload
+        printf("Extracted Payload:\n");
+        for (int i = 0; i < payload_length; i++) {
+            printf("%02X ", payload[i]);
+        }
+
+        // Don't forget to free the allocated memory
+        free(payload);
+    } else {
+        printf("Error extracting payload.\n");
+    }
+
+    return 0;
+}
